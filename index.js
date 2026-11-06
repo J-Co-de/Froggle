@@ -17,7 +17,7 @@ const MILESTONES = {
 // Shown once, the first time she opens the game.
 const INTRO_TITLE = `For ${FRIEND_NAME} 🐸`;
 const INTRO_MESSAGE =
-  "I made this for you. No pressure, no rush. It's a little pond to hop around in whenever you need a break.\n\n- YOUR BEST FRIEND JACKSON CLARK:D";
+  "I made this for you. No pressure, no rush. It's a little pond to hop around in whenever you need a break.\n\n- YOUR BEST FRIEND JACKSON CLARK";
 
 /* =========================================================
    Setup
