@@ -4,14 +4,13 @@
 }
 
 :root {
-    --lane: 4rem;
+    --lane: 1rem;
     --u: min(1rem, calc(100vw / 44), calc((100dvh - var(--lane)) / 62));
 }
 
 body {
     font-size: var(--u);
     box-sizing: border-box;
-    padding-top: var(--lane);
     min-height: 100dvh;
     background: #0B1D13;
     display: flex;
@@ -551,6 +550,224 @@ body.droop::after {
 
 .kb-key {
     touch-action: manipulation;
+}
+
+/* ===== Scenery (wide screens) ===== */
+.scene {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    /* behind the frog's eyes, legs and tongue (z-index -1) */
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.water {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 24vh;
+    background: linear-gradient(to top, rgba(32, 110, 80, 0.45), rgba(20, 70, 55, 0.18) 60%, transparent);
+}
+
+.moon {
+    position: absolute;
+    top: 9vh;
+    right: 14vw;
+    width: 5rem;
+    height: 5rem;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 62% 60%, rgba(0, 0, 0, 0.08) 0 12%, transparent 13%),
+        radial-gradient(circle at 30% 38%, rgba(0, 0, 0, 0.06) 0 9%, transparent 10%),
+        radial-gradient(circle at 35% 35%, #FFFBE6 0 55%, #E9E4B5 100%);
+    box-shadow: 0 0 3rem 0.8rem rgba(255, 251, 230, 0.18);
+}
+
+.star {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #F5FFF5;
+    animation: twinkle var(--d) ease-in-out infinite alternate;
+}
+
+@keyframes twinkle {
+    from {
+        opacity: 0.15;
+    }
+
+    to {
+        opacity: var(--o);
+    }
+}
+
+.reeds {
+    position: absolute;
+    bottom: -2vh;
+    aspect-ratio: 2 / 5;
+    width: auto;
+    transform-origin: 50% 100%;
+    animation: sway 6s ease-in-out infinite alternate;
+}
+
+.reeds.r {
+    scale: -1 1;
+}
+
+@keyframes sway {
+    from {
+        rotate: -2deg;
+    }
+
+    to {
+        rotate: 2deg;
+    }
+}
+
+.padwrap {
+    position: absolute;
+    animation: bob 4s ease-in-out infinite alternate;
+}
+
+.pad {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 40% 35%, #5BD34F, #2E8B3A 70%);
+    /* wedge cut out of the right side, like a real lily pad */
+    clip-path: polygon(50% 50%, 100% 38%, 100% 0, 0 0, 0 100%, 100% 100%, 100% 62%);
+}
+
+.lotus {
+    position: absolute;
+    left: 30%;
+    bottom: 30%;
+    font-size: 1.6rem;
+    line-height: 1;
+}
+
+@keyframes bob {
+    from {
+        translate: 0 0;
+        rotate: -1.5deg;
+    }
+
+    to {
+        translate: 0 0.3rem;
+        rotate: 1.5deg;
+    }
+}
+
+.ripple {
+    position: absolute;
+    border: 2px solid rgba(125, 249, 255, 0.35);
+    border-radius: 50%;
+    animation: ripple 4s linear infinite;
+}
+
+@keyframes ripple {
+    from {
+        scale: 0.3;
+        opacity: 0.8;
+    }
+
+    to {
+        scale: 1.4;
+        opacity: 0;
+    }
+}
+
+.firefly {
+    position: absolute;
+    width: 0.35rem;
+    height: 0.35rem;
+    border-radius: 50%;
+    background: #F2F26B;
+    box-shadow: 0 0 0.6rem 0.25rem rgba(242, 242, 107, 0.7);
+    animation: drift var(--t) ease-in-out infinite alternate, blink var(--b) ease-in-out infinite;
+}
+
+@keyframes drift {
+    to {
+        translate: var(--dx) var(--dy);
+    }
+}
+
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 0.15;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+/* flies you can click */
+.flies {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.fly {
+    position: absolute;
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+    pointer-events: auto;
+    user-select: none;
+    animation: fly-wander var(--t, 8s) ease-in-out infinite;
+    transition: opacity 0.2s, scale 0.2s;
+}
+
+.fly.eaten {
+    opacity: 0;
+    scale: 0;
+    pointer-events: none;
+}
+
+@keyframes fly-wander {
+
+    0%,
+    100% {
+        translate: 0 0;
+    }
+
+    25% {
+        translate: var(--ax) var(--ay);
+    }
+
+    50% {
+        translate: var(--bx) var(--by);
+    }
+
+    75% {
+        translate: var(--cx) var(--cy);
+    }
+}
+
+/* phones and narrow windows: no scenery */
+@media (max-width: 1000px) {
+
+    .scene,
+    .flies {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .scene *,
+    .fly {
+        animation: none !important;
+    }
 }
 
 /* no double-tap zoom on phones */

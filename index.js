@@ -478,8 +478,10 @@ function confetti(count, emojis) {
 function celebrate(streak, r, newBest) {
   if (reduceMotion) return;
   const tier = tierOf(streak);
-  card.style.setProperty("--reps", tier === 4 ? 3 : tier === 3 ? 2 : 1);
-
+  document.body.style.setProperty(
+    "--reps",
+    tier === 4 ? 3 : tier === 3 ? 2 : 1,
+  );
   for (let c = 0; c < COLS; c++) {
     const t = tile(r, c);
     t.style.animationDelay = `${c * 0.1}s`;
@@ -501,7 +503,7 @@ function celebrate(streak, r, newBest) {
 
 function clearCelebration() {
   card.classList.remove("party", "glow", "gold", "blink");
-  card.style.removeProperty("--reps");
+  document.body.style.removeProperty("--reps");
   card.style.removeProperty("--pupil-y");
   document.body.classList.remove("flick", "droop");
   document.querySelectorAll(".confetti").forEach((el) => el.remove());
@@ -742,6 +744,124 @@ document.addEventListener("keydown", (e) => {
   handleKey(e.key);
 });
 
+/* =========================================================
+   Scenery and flies (wide screens only; CSS hides it on phones)
+   ========================================================= */
+const rand = (a, b) => a + Math.random() * (b - a);
+
+const REEDS_SVG = `
+  <g fill="none" stroke-linecap="round">
+    <g stroke="#2F7D3A" stroke-width="4">
+      <path d="M30 300 Q24 200 34 92"/>
+      <path d="M60 300 Q68 170 56 44"/>
+      <path d="M90 300 Q98 220 88 126"/>
+    </g>
+    <g stroke="#3FA34D" stroke-width="5">
+      <path d="M45 300 Q30 230 10 150"/>
+      <path d="M75 300 Q95 240 112 170"/>
+    </g>
+  </g>
+  <g fill="#6B4A2B">
+    <rect x="29" y="64" width="10" height="34" rx="5"/>
+    <rect x="51" y="18" width="10" height="34" rx="5"/>
+    <rect x="83" y="98" width="10" height="34" rx="5"/>
+  </g>`;
+
+function buildScene() {
+  const scene = document.createElement("div");
+  scene.className = "scene";
+  let html = `<div class="moon"></div><div class="water"></div>`;
+
+  // stars
+  for (let i = 0; i < 40; i++) {
+    html += `<i class="star" style="left:${rand(0, 100)}vw;top:${rand(2, 55)}vh;--d:${rand(2, 5)}s;--o:${rand(0.3, 0.9)}"></i>`;
+  }
+
+  // reeds: [side, offset in vw, height in vh]
+  [
+    ["l", 1, 42],
+    ["l", 8, 28],
+    ["r", 1, 42],
+    ["r", 8, 28],
+  ].forEach(([side, off, h]) => {
+    const edge = side === "l" ? "left" : "right";
+    html += `<svg class="reeds ${side}" viewBox="0 0 120 300" aria-hidden="true"
+      style="${edge}:${off}vw;height:${h}vh;animation-delay:-${rand(0, 5)}s">${REEDS_SVG}</svg>`;
+  });
+
+  // lily pads (+ a ripple under each)
+  const pads = [
+    { x: 3, b: 5, w: 7 },
+    { x: 11, b: 11, w: 5.5, flower: true },
+    { x: 17, b: 4, w: 6 },
+    { x: 79, b: 5, w: 6 },
+    { x: 86, b: 10, w: 5.5, flower: true },
+    { x: 92, b: 4, w: 7 },
+  ];
+  pads.forEach((p) => {
+    html += `<i class="ripple" style="left:calc(${p.x}vw - ${p.w * 0.25}rem);bottom:calc(${p.b}vh - 0.4rem);width:${p.w * 1.5}rem;height:${p.w * 0.5}rem;animation-delay:-${rand(0, 4)}s"></i>`;
+    html += `<div class="padwrap" style="left:${p.x}vw;bottom:${p.b}vh;width:${p.w}rem;height:${p.w * 0.42}rem;animation-delay:-${rand(0, 4)}s">
+      <div class="pad"></div>${p.flower ? '<span class="lotus">🪷</span>' : ""}</div>`;
+  });
+
+  // fireflies
+  for (let i = 0; i < 18; i++) {
+    html += `<i class="firefly" style="left:${rand(0, 100)}vw;top:${rand(25, 90)}vh;--dx:${rand(-8, 8)}vw;--dy:${rand(-10, 10)}vh;--t:${rand(7, 14)}s;--b:${rand(2, 5)}s;animation-delay:-${rand(0, 8)}s,-${rand(0, 4)}s"></i>`;
+  }
+
+  scene.innerHTML = html;
+  document.body.appendChild(scene);
+}
+
+// Flies the frog can eat: they hang around the side areas
+function placeFly(f) {
+  const onLeft = Math.random() < 0.5;
+  f.style.left = (onLeft ? rand(3, 18) : rand(82, 96)) + "vw";
+  f.style.top = rand(24, 70) + "vh";
+  ["a", "b", "c"].forEach((k) => {
+    f.style.setProperty(`--${k}x`, rand(-4, 4) + "vw");
+    f.style.setProperty(`--${k}y`, rand(-8, 8) + "vh");
+  });
+  f.style.setProperty("--t", rand(6, 10) + "s");
+}
+
+function eatFly(f) {
+  if (f.classList.contains("eaten")) return;
+  f.classList.add("eaten");
+
+  document.body.style.setProperty("--reps", 1);
+  document.body.classList.remove("flick");
+  void document.body.offsetWidth; // restart the tongue animation
+  document.body.classList.add("flick");
+  setTimeout(() => document.body.classList.remove("flick"), 700);
+  sfx.ribbit();
+
+  setTimeout(
+    () => {
+      placeFly(f);
+      f.classList.remove("eaten");
+    },
+    4000 + Math.random() * 4000,
+  );
+}
+
+function buildFlies() {
+  const layer = document.createElement("div");
+  layer.className = "flies";
+  for (let i = 0; i < 3; i++) {
+    const f = document.createElement("span");
+    f.className = "fly";
+    f.textContent = "🪰";
+    f.title = "Feed the frog";
+    placeFly(f);
+    f.addEventListener("click", () => eatFly(f));
+    layer.appendChild(f);
+  }
+  document.body.appendChild(layer);
+}
+
+buildScene();
+buildFlies();
 /* =========================================================
    Boot
    ========================================================= */
